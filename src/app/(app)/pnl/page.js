@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import PnlCalendar from "@/components/PnlCalendar";
@@ -74,7 +74,7 @@ export default function PnlPage() {
   const weekdays = useMemo(() => byWeekday(days), [days]);
 
   return (
-    <div className="space-y-5">
+    <Suspense><div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <h1 className="text-xl font-semibold">PnL</h1>
 
@@ -128,6 +128,6 @@ export default function PnlPage() {
           border-color: rgb(71 85 105 / 1);
         }
       `}</style>
-    </div>
+    </div></Suspense>
   );
 }

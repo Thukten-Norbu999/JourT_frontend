@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import TradesTable from "@/components/TradesTable";
 import TradeDrawer from "@/components/TradeDrawer";
@@ -94,7 +94,8 @@ export default function TradesPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <Suspense>
+      <div className="space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -177,6 +178,7 @@ export default function TradesPage() {
         onSave={saveJournal}
       />
     </div>
+    </Suspense>
   );
 }
 

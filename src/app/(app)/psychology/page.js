@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import PsychologyForm from "@/components/PsychologyForm";
 // later: import { fetchPsychology, savePsychology } from "@/lib/psychologyApi";
 
@@ -18,7 +18,7 @@ export default function PsychologyPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <Suspense><div className="space-y-5">
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Daily Psychology</h1>
         <input
@@ -34,6 +34,6 @@ export default function PsychologyPage() {
         initial={initial}
         onSave={save}
       />
-    </div>
+    </div></Suspense>
   );
 }

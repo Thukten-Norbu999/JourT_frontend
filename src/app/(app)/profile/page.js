@@ -44,7 +44,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-5">
+    <Suspense>
+      <div className="max-w-2xl space-y-5">
       <div>
         <h1 className="text-xl font-semibold">Profile</h1>
         <p className="text-sm text-slate-400 mt-1">
@@ -107,6 +108,7 @@ export default function ProfilePage() {
         </form>
       </div>
     </div>
+    </Suspense>
   );
 }
 

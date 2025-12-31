@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import { parseCSV } from "@/lib/import/csv";
 import { importTrades } from "@/lib/import/importApi";
 
@@ -231,7 +231,7 @@ export default function ImportPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <Suspense><div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Import</h1>
@@ -645,7 +645,7 @@ export default function ImportPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </div></Suspense>
   );
 }
 
