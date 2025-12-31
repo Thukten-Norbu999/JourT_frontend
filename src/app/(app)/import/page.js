@@ -878,6 +878,114 @@ function baseHeader(s) {
     .trim();
 }
 
+function parseAndNormalizeDate(dateStr) {
+  if (!dateStr) return "";
+  
+  const str = String(dateStr).trim();
+  if (!str) return "";
+
+  // Try standard Date.parse first (handles ISO, RFC, etc.)
+  let date = new Date(str);
+  if (!isNaN(date.getTime())) {
+    return date.toISOString();
+  }
+
+  // Handle "Sep 15, 2025 16:59:02 ET" format (with timezone suffix)
+  const tzSuffixPattern = /^(.+?)\s+(ET|EST|EDT|PT|PST|PDT|CT|CST|CDT|MT|MST|MDT|AT|AST|ADT|GMT|UTC|Z)$/i;
+  const tzMatch = str.match(tzSuffixPattern);
+  if (tzMatch) {
+    // Remove timezone suffix and try parsing
+    date = new Date(tzMatch[1]);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+  }
+
+  // Handle "DD/MM/YYYY" or "MM/DD/YYYY" formats
+  const slashPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/;
+  const slashMatch = str.match(slashPattern);
+  if (slashMatch) {
+    const [, p1, p2, year, hour = "0", minute = "0", second = "0"] = slashMatch;
+    // Try MM/DD/YYYY first (US format)
+    date = new Date(year, parseInt(p1) - 1, parseInt(p2), parseInt(hour), parseInt(minute), parseInt(second));
+    if (!isNaN(date.getTime()) && date.getMonth() === parseInt(p1) - 1) {
+      return date.toISOString();
+    }
+    // Try DD/MM/YYYY
+    date = new Date(year, parseInt(p2) - 1, parseInt(p1), parseInt(hour), parseInt(minute), parseInt(second));
+    if (!isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+  }
+
+  // Handle "YYYY-MM-DD HH:mm:ss" format
+  const isoPattern = /^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/;
+  const isoMatch = str.match(isoPattern);
+  if (isoMatch) {
+    const [, year, month, day, hour = "0", minute = "0", second = "0"] = isoMatch;
+    date = new Date(year, parseInt(month) - 1, day, parseInt(hour), parseInt(minute), parseInt(second));
+    if (!isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+  }
+
+  // If all parsing fails, return original string
+  return str;
+}
+
+/**
+Check if a date string is valid*/
+function isValidDateLike(s) {
+  if (!s) return false;
+  const str = String(s).trim();
+  if (!str) return false;
+
+  // Remove timezone suffixes before testing
+  const tzSuffixPattern = /\s+(ET|EST|EDT|PT|PST|PDT|CT|CST|CDT|MT|MST|MDT|AT|AST|ADT|GMT|UTC|Z)$/i;
+  const cleaned = str.replace(tzSuffixPattern, "");
+
+  // Try parsing
+  const parsed = parseAndNormalizeDate(str);
+  
+  // Check if it's a valid ISO string or the original parse succeeded
+  if (parsed !== str) {
+    const date = new Date(parsed);
+    return !isNaN(date.getTime());
+  }
+
+  // Fallback: check common patterns
+  const patterns = [
+    /^\d{4}-\d{2}-\d{2}/, // YYYY-MM-DD
+    /^\d{1,2}\/\d{1,2}\/\d{4}/, // MM/DD/YYYY or DD/MM/YYYY
+    /^[A-Za-z]{3}\s+\d{1,2},?\s+\d{4}/, // Mon DD, YYYY or Mon DD YYYY
+  ];
+
+  return patterns.some(pattern => pattern.test(cleaned));
+}
+
+/**
+ * Format date for display (shorter format)
+ */
+function formatDateForDisplay(isoStr) {
+  if (!isoStr) return "";
+  try {
+    const date = new Date(isoStr);
+    if (isNaN(date.getTime())) return String(isoStr);
+    
+    // Format as: "Dec 31, 2025 10:30 AM"
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return String(isoStr);
+  }
+}
+
+
 function autoMap(headers) {
   const h = headers.map(baseHeader);
 
@@ -907,8 +1015,12 @@ function autoMap(headers) {
 function normalizeRow(row, mapping) {
   const get = (k) => (mapping[k] ? row[mapping[k]] : "") ?? "";
 
+  // Parse and normalize the date
+  const rawDate = String(get("date") ?? "").trim();
+  const normalizedDate = parseAndNormalizeDate(rawDate);
+
   return {
-    date: String(get("date") ?? "").trim(),
+    date: normalizedDate,
     symbol: String(get("symbol") ?? "").trim(),
     side: String(get("side") ?? "").toUpperCase().trim(),
     qty: num(get("qty")),
@@ -925,6 +1037,13 @@ function normalizeRow(row, mapping) {
   };
 }
 
+/* ---------------- Helper functions ---------------- */
+
+function num(v) {
+  const n = Number(String(v ?? "").replace(/[^0-9.\-]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+}
+
 function toBackendTrade(t, opts) {
   const single = !!opts?.singlePriceMode;
   const entry = single ? (t.price || t.entry) : t.entry;
@@ -932,7 +1051,7 @@ function toBackendTrade(t, opts) {
   const pnl = t.pnl || 0;
 
   return {
-    date: t.date,
+    date: t.date, // Already normalized to ISO format
     symbol: t.symbol,
     side: t.side,
     qty: t.qty,
@@ -951,19 +1070,4 @@ function toBackendTrade(t, opts) {
   };
 }
 
-function num(v) {
-  const n = Number(String(v ?? "").replace(/[^0-9.\-]/g, ""));
-  return Number.isFinite(n) ? n : 0;
-}
 
-function isValidDateLike(s) {
-  const str = String(s || "").trim();
-  if (!str) return false;
-
-  const t = Date.parse(str);
-  if (!Number.isNaN(t)) return true;
-
-  if (/^\d{4}-\d{2}-\d{2}(\s+\d{2}:\d{2}(:\d{2})?)?$/.test(str)) return true;
-
-  return false;
-}

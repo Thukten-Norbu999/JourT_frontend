@@ -1,9 +1,9 @@
+// FILE: /components/TradeDrawer.jsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useSetups } from "@/lib/setups/useSetups";
 
-// Trade-level psychology rules (per trade)
 const TRADE_RULES = [
   { key: "followedPlan", label: "Followed trading plan" },
   { key: "respectedRisk", label: "Respected risk limits" },
@@ -11,89 +11,83 @@ const TRADE_RULES = [
   { key: "noRevenge", label: "No revenge trading" },
 ];
 
-// Psychology tags
-const PSY_TAGS = [
-  "FOMO",
-  "Revenge",
-  "Hesitation",
-  "Overconfidence",
-  "Fear",
-  "Patience",
-  "Discipline",
-];
+const PSY_TAGS = ["FOMO", "Revenge", "Hesitation", "Overconfidence", "Fear", "Patience", "Discipline"];
 
 export default function TradeDrawer({ trade, open, onClose, onSave }) {
-  const initial = useMemo(() => trade?.journal || {}, [trade]);
+  const j0 = useMemo(() => trade?.Journal || trade?.journal || {}, [trade]);
   const { setups: setupsList, loading: setupsLoading } = useSetups();
 
-  // Core journal fields
-  // NOTE: setup stores setupId (backend)
-  const [setup, setSetup] = useState(initial.setup || "");
-  const [thesis, setThesis] = useState(initial.thesis || "");
-  const [mistakes, setMistakes] = useState(initial.mistakes || "");
-  const [lessons, setLessons] = useState(initial.lessons || "");
-  const [rating, setRating] = useState(initial.rating || 0);
-  const [tagsText, setTagsText] = useState((initial.tags || []).join(", "));
+  // Journal
+  const [setup, setSetup] = useState(j0.Setup || j0.setup || "");
+  const [thesis, setThesis] = useState(j0.Thesis || j0.thesis || "");
+  const [mistakes, setMistakes] = useState(j0.Mistakes || j0.mistakes || "");
+  const [lessons, setLessons] = useState(j0.Lessons || j0.lessons || "");
+  const [rating, setRating] = useState(Number(j0.Rating ?? j0.rating ?? 0));
+  const [tagsText, setTagsText] = useState(csvToText(j0.Tags ?? j0.tags ?? ""));
 
-  // Psychology (inside trade journal)
-  const [emotion, setEmotion] = useState(initial.psychology?.emotion ?? 3);
-  const [confidence, setConfidence] = useState(initial.psychology?.confidence ?? 3);
-  const [executionScore, setExecutionScore] = useState(
-    initial.psychology?.executionScore ?? 3
-  );
-  const [psyTags, setPsyTags] = useState(initial.psychology?.psyTags ?? []);
-  const [rules, setRules] = useState(
-    initial.psychology?.rules ?? {
-      followedPlan: false,
-      respectedRisk: false,
-      waitedConfirmation: false,
-      noRevenge: false,
-    }
-  );
+  // Psychology
+  const p0 = j0.Psychology || j0.psychology || {};
+  const [emotion, setEmotion] = useState(Number(p0.Emotion ?? p0.emotion ?? 3));
+  const [confidence, setConfidence] = useState(Number(p0.Confidence ?? p0.confidence ?? 3));
+  const [executionScore, setExecutionScore] = useState(Number(p0.ExecutionScore ?? p0.executionScore ?? 3));
+  const [psyTags, setPsyTags] = useState(csvToArray(p0.PsyTags ?? p0.psyTags ?? ""));
 
-  // Metrics (optional but backend-ready)
-  const [rMultiple, setRMultiple] = useState(initial.metrics?.rMultiple ?? 0);
-  const [mae, setMae] = useState(initial.metrics?.mae ?? 0);
-  const [mfe, setMfe] = useState(initial.metrics?.mfe ?? 0);
+  const [rules, setRules] = useState({
+    followedPlan: !!(p0.FollowedPlan ?? p0.followedPlan ?? false),
+    respectedRisk: !!(p0.RespectedRisk ?? p0.respectedRisk ?? false),
+    waitedConfirmation: !!(p0.WaitedConfirmation ?? p0.waitedConfirmation ?? false),
+    noRevenge: !!(p0.NoRevenge ?? p0.noRevenge ?? false),
+    ...(p0.rules || {}),
+  });
 
-  // Screenshots (placeholder UI)
-  const [shotBefore, setShotBefore] = useState(initial.screenshots?.before ?? null);
-  const [shotAfter, setShotAfter] = useState(initial.screenshots?.after ?? null);
+  // Metrics
+  const m0 = j0.Metrics || j0.metrics || {};
+  const [rMultiple, setRMultiple] = useState(Number(m0.RMultiple ?? m0.rMultiple ?? 0));
+  const [mae, setMae] = useState(Number(m0.MAE ?? m0.mae ?? 0));
+  const [mfe, setMfe] = useState(Number(m0.MFE ?? m0.mfe ?? 0));
+
+  // Screenshots
+  const s0 = j0.Screenshots || j0.screenshots || {};
+  const [shotBefore, setShotBefore] = useState(s0.Before ?? s0.before ?? null);
+  const [shotAfter, setShotAfter] = useState(s0.After ?? s0.after ?? null);
 
   const [saving, setSaving] = useState(false);
 
-  // ✅ Correct reset when a new trade opens (useEffect, not useMemo)
   useEffect(() => {
     if (!open || !trade) return;
-    const j = trade.journal || {};
 
-    setSetup(j.setup || ""); // setupId
-    setThesis(j.thesis || "");
-    setMistakes(j.mistakes || "");
-    setLessons(j.lessons || "");
-    setRating(j.rating || 0);
-    setTagsText((j.tags || []).join(", "));
+    const j = trade?.Journal || trade?.journal || {};
+    const p = j?.Psychology || j?.psychology || {};
+    const m = j?.Metrics || j?.metrics || {};
+    const s = j?.Screenshots || j?.screenshots || {};
 
-    setEmotion(j.psychology?.emotion ?? 3);
-    setConfidence(j.psychology?.confidence ?? 3);
-    setExecutionScore(j.psychology?.executionScore ?? 3);
-    setPsyTags(j.psychology?.psyTags ?? []);
-    setRules(
-      j.psychology?.rules ?? {
-        followedPlan: false,
-        respectedRisk: false,
-        waitedConfirmation: false,
-        noRevenge: false,
-      }
-    );
+    setSetup(j.Setup || j.setup || "");
+    setThesis(j.Thesis || j.thesis || "");
+    setMistakes(j.Mistakes || j.mistakes || "");
+    setLessons(j.Lessons || j.lessons || "");
+    setRating(Number(j.Rating ?? j.rating ?? 0));
+    setTagsText(csvToText(j.Tags ?? j.tags ?? ""));
 
-    setRMultiple(j.metrics?.rMultiple ?? 0);
-    setMae(j.metrics?.mae ?? 0);
-    setMfe(j.metrics?.mfe ?? 0);
+    setEmotion(Number(p.Emotion ?? p.emotion ?? 3));
+    setConfidence(Number(p.Confidence ?? p.confidence ?? 3));
+    setExecutionScore(Number(p.ExecutionScore ?? p.executionScore ?? 3));
+    setPsyTags(csvToArray(p.PsyTags ?? p.psyTags ?? ""));
 
-    setShotBefore(j.screenshots?.before ?? null);
-    setShotAfter(j.screenshots?.after ?? null);
-  }, [trade?.id, open]); // eslint-disable-line react-hooks/exhaustive-deps
+    setRules({
+      followedPlan: !!(p.FollowedPlan ?? p.followedPlan ?? false),
+      respectedRisk: !!(p.RespectedRisk ?? p.respectedRisk ?? false),
+      waitedConfirmation: !!(p.WaitedConfirmation ?? p.waitedConfirmation ?? false),
+      noRevenge: !!(p.NoRevenge ?? p.noRevenge ?? false),
+      ...(p.rules || {}),
+    });
+
+    setRMultiple(Number(m.RMultiple ?? m.rMultiple ?? 0));
+    setMae(Number(m.MAE ?? m.mae ?? 0));
+    setMfe(Number(m.MFE ?? m.mfe ?? 0));
+
+    setShotBefore(s.Before ?? s.before ?? null);
+    setShotAfter(s.After ?? s.after ?? null);
+  }, [trade?.id, open]);
 
   if (!open || !trade) return null;
 
@@ -114,14 +108,13 @@ export default function TradeDrawer({ trade, open, onClose, onSave }) {
   async function handleSave() {
     setSaving(true);
     try {
-      await onSave({
-        setup, // setupId from backend
+      await onSave?.({
+        setup,
         thesis,
         mistakes,
         lessons,
         rating,
         tags,
-
         psychology: {
           emotion,
           confidence,
@@ -130,13 +123,11 @@ export default function TradeDrawer({ trade, open, onClose, onSave }) {
           rules,
           discipline: disciplineScoreFromRules(rules),
         },
-
         metrics: {
           rMultiple,
           mae,
           mfe,
         },
-
         screenshots: {
           before: shotBefore,
           after: shotAfter,
@@ -147,234 +138,195 @@ export default function TradeDrawer({ trade, open, onClose, onSave }) {
     }
   }
 
-  const pnlGood = trade.pnl >= 0;
+  const pnl = Number(trade?.pnl ?? trade?.PnL ?? 0);
+  const pnlGood = Number.isFinite(pnl) ? pnl >= 0 : true;
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* backdrop */}
       <div onClick={onClose} className="absolute inset-0 bg-black/50" />
 
-      {/* panel */}
-      <div className="absolute right-0 top-0 h-full w-full sm:w-[560px] bg-slate-950 border-l border-slate-800">
-        {/* Header */}
-        <div className="p-5 border-b border-slate-800 flex items-start justify-between">
-          <div>
-            <div className="text-xs text-slate-400">Trade Journal</div>
-            <div className="text-lg font-semibold mt-1">
-              {trade.symbol} · {trade.side} ·{" "}
-              <span className={pnlGood ? "text-emerald-300" : "text-rose-300"}>
-                {pnlGood ? "+" : ""}
-                {trade.pnl.toFixed(2)}
-              </span>
+      <div className="absolute right-0 top-0 h-full w-full sm:w-[560px] bg-slate-950 border-l border-slate-800 flex flex-col overflow-hidden">
+        {/* Scrollable container for entire drawer */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 z-10 p-5 border-b border-slate-800 flex items-start justify-between bg-slate-950">
+            <div>
+              <div className="text-xs text-slate-400">Trade Journal</div>
+              <div className="text-lg font-semibold mt-1">
+                {String(trade?.symbol || trade?.Symbol || "—")} · {String(trade?.side || trade?.Side || "—")} ·{" "}
+                <span className={pnlGood ? "text-emerald-300" : "text-rose-300"}>
+                  {Number.isFinite(pnl) ? (pnlGood ? "+" : "") + pnl.toFixed(2) : "—"}
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 mt-1">
+                {String(trade?.date || trade?.Date || "—")} · Entry {String(trade?.entry ?? trade?.Entry ?? "—")} · Exit{" "}
+                {String(trade?.exit ?? trade?.Exit ?? "—")} · Qty {String(trade?.qty ?? trade?.Qty ?? "—")}
+              </div>
             </div>
-            <div className="text-xs text-slate-500 mt-1">
-              {trade.date} · Entry {trade.entry} · Exit {trade.exit} · Qty {trade.qty}
-            </div>
+
+            <button onClick={onClose} className="rounded-xl border border-slate-800 px-3 py-2 hover:bg-slate-900">
+              Close
+            </button>
           </div>
 
-          <button
-            onClick={onClose}
-            className="rounded-xl border border-slate-800 px-3 py-2 hover:bg-slate-900"
-          >
-            Close
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-5 space-y-5 overflow-auto h-[calc(100%-148px)]">
-          {/* Setup + Rating */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <div className="text-xs text-slate-400 mb-1">Setup</div>
-              <select
-                value={setup}
-                onChange={(e) => setSetup(e.target.value)}
-                className="w-full rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
-              >
-                <option value="">
-                  {setupsLoading ? "Loading setups..." : "— Select setup —"}
-                </option>
-                {setupsList.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-              <div className="text-[11px] text-slate-500 mt-1">
-                Manage setups from your “Manage Setups” modal (backend).
-              </div>
-            </div>
-
-            <div>
-              <div className="text-xs text-slate-400 mb-1">Rating</div>
-              <Segment6 value={rating || 0} onChange={setRating} />
-            </div>
-          </div>
-
-          {/* Tags */}
-          <Field label="Tags (comma separated)">
-            <input
-              value={tagsText}
-              onChange={(e) => setTagsText(e.target.value)}
-              className="w-full rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
-              placeholder="A+ Setup, FOMO, Patience..."
-            />
-            {tags.length ? (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {tags.map((t) => (
-                  <span
-                    key={t}
-                    className="text-xs px-2 py-1 rounded-lg border border-slate-800 bg-slate-900/40"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </Field>
-
-          {/* Core journal */}
-          <Field label="Thesis / Plan">
-            <textarea
-              value={thesis}
-              onChange={(e) => setThesis(e.target.value)}
-              className="w-full min-h-[90px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
-              placeholder="Why did you take this trade?"
-            />
-          </Field>
-
-          <Field label="Mistakes">
-            <textarea
-              value={mistakes}
-              onChange={(e) => setMistakes(e.target.value)}
-              className="w-full min-h-[80px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
-              placeholder="Rule breaks, execution issues..."
-            />
-          </Field>
-
-          <Field label="Lessons / Improvements">
-            <textarea
-              value={lessons}
-              onChange={(e) => setLessons(e.target.value)}
-              className="w-full min-h-[80px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
-              placeholder="What will you do next time?"
-            />
-          </Field>
-
-          {/* Psychology (better UX) */}
-          <Collapsible title="Psychology" defaultOpen>
-            <div className="space-y-4">
-              {/* Summary */}
-              <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-3 flex items-center justify-between">
-                <div className="text-sm text-slate-200">
-                  Discipline{" "}
-                  <span className="text-slate-400">
-                    {disciplineScoreFromRules(rules)}/100
-                  </span>
-                </div>
-                <div className="text-xs text-slate-500">
-                  Emotion {emotion}/5 · Confidence {confidence}/5 · Exec {executionScore}/5
-                </div>
-              </div>
-
-              {/* Segmented controls */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Segment5 label="Emotion" value={emotion} onChange={setEmotion} />
-                <Segment5 label="Confidence" value={confidence} onChange={setConfidence} />
-                <Segment5 label="Execution" value={executionScore} onChange={setExecutionScore} />
-              </div>
-
-              {/* Psychology tags */}
+          {/* Content */}
+          <div className="p-5 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <div className="text-xs text-slate-400 mb-2">Psychology tags</div>
-                <div className="flex flex-wrap gap-2">
-                  {PSY_TAGS.map((t) => (
-                    <Chip key={t} active={psyTags.includes(t)} onClick={() => togglePsyTag(t)}>
+                <div className="text-xs text-slate-400 mb-1">Setup</div>
+                <select
+                  value={setup}
+                  onChange={(e) => setSetup(e.target.value)}
+                  className="w-full rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
+                >
+                  <option value="">{setupsLoading ? "Loading setups..." : "— Select setup —"}</option>
+                  {(setupsList || []).map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <div className="text-xs text-slate-400 mb-1">Rating</div>
+                <Segment6 value={rating || 0} onChange={setRating} />
+              </div>
+            </div>
+
+            <Field label="Tags (comma separated)">
+              <input
+                value={tagsText}
+                onChange={(e) => setTagsText(e.target.value)}
+                className="w-full rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
+                placeholder="A+ Setup, FOMO, Patience..."
+              />
+              {tags.length ? (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tags.map((t) => (
+                    <span key={t} className="text-xs px-2 py-1 rounded-lg border border-slate-800 bg-slate-900/40">
                       {t}
-                    </Chip>
+                    </span>
                   ))}
                 </div>
-              </div>
+              ) : null}
+            </Field>
 
-              {/* Rules */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs text-slate-400">Rules adherence</div>
+            <Field label="Thesis / Plan">
+              <textarea
+                value={thesis}
+                onChange={(e) => setThesis(e.target.value)}
+                className="w-full min-h-[90px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
+              />
+            </Field>
+
+            <Field label="Mistakes">
+              <textarea
+                value={mistakes}
+                onChange={(e) => setMistakes(e.target.value)}
+                className="w-full min-h-[80px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
+              />
+            </Field>
+
+            <Field label="Lessons / Improvements">
+              <textarea
+                value={lessons}
+                onChange={(e) => setLessons(e.target.value)}
+                className="w-full min-h-[80px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
+              />
+            </Field>
+
+            <Collapsible title="Psychology" defaultOpen>
+              <div className="space-y-4">
+                <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-3 flex items-center justify-between">
+                  <div className="text-sm text-slate-200">
+                    Discipline <span className="text-slate-400">{disciplineScoreFromRules(rules)}/100</span>
+                  </div>
                   <div className="text-xs text-slate-500">
-                    {Object.values(rules || {}).filter(Boolean).length}/{TRADE_RULES.length} checked
+                    Emotion {emotion}/5 · Confidence {confidence}/5 · Exec {executionScore}/5
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {TRADE_RULES.map((r) => {
-                    const ok = !!rules?.[r.key];
-                    return (
-                      <button
-                        key={r.key}
-                        type="button"
-                        onClick={() => toggleRule(r.key)}
-                        className={[
-                          "text-left rounded-xl border p-3 transition",
-                          ok
-                            ? "border-emerald-500/30 bg-emerald-500/10"
-                            : "border-slate-800 bg-slate-900/20 hover:bg-slate-900/40",
-                        ].join(" ")}
-                      >
-                        <div className="text-sm text-slate-200 flex items-center justify-between">
-                          <span>{r.label}</span>
-                          <span
-                            className={[
-                              "text-xs px-2 py-0.5 rounded-lg border",
-                              ok
-                                ? "border-emerald-500/30 text-emerald-200"
-                                : "border-slate-700 text-slate-500",
-                            ].join(" ")}
-                          >
-                            {ok ? "Yes" : "No"}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-slate-500 mt-1">Tap to toggle</div>
-                      </button>
-                    );
-                  })}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Segment5 label="Emotion" value={emotion} onChange={setEmotion} />
+                  <Segment5 label="Confidence" value={confidence} onChange={setConfidence} />
+                  <Segment5 label="Execution" value={executionScore} onChange={setExecutionScore} />
+                </div>
+
+                <div>
+                  <div className="text-xs text-slate-400 mb-2">Psychology tags</div>
+                  <div className="flex flex-wrap gap-2">
+                    {PSY_TAGS.map((t) => (
+                      <Chip key={t} active={psyTags.includes(t)} onClick={() => togglePsyTag(t)}>
+                        {t}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs text-slate-400">Rules adherence</div>
+                    <div className="text-xs text-slate-500">
+                      {Object.values(rules || {}).filter(Boolean).length}/{TRADE_RULES.length} checked
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {TRADE_RULES.map((r) => {
+                      const ok = !!rules?.[r.key];
+                      return (
+                        <button
+                          key={r.key}
+                          type="button"
+                          onClick={() => toggleRule(r.key)}
+                          className={[
+                            "text-left rounded-xl border p-3 transition",
+                            ok
+                              ? "border-emerald-500/30 bg-emerald-500/10"
+                              : "border-slate-800 bg-slate-900/20 hover:bg-slate-900/40",
+                          ].join(" ")}
+                        >
+                          <div className="text-sm text-slate-200 flex items-center justify-between">
+                            <span>{r.label}</span>
+                            <span
+                              className={[
+                                "text-xs px-2 py-0.5 rounded-lg border",
+                                ok ? "border-emerald-500/30 text-emerald-200" : "border-slate-700 text-slate-500",
+                              ].join(" ")}
+                            >
+                              {ok ? "Yes" : "No"}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-1">Tap to toggle</div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Collapsible>
+            </Collapsible>
 
-          {/* Metrics */}
-          <Collapsible title="Metrics (optional)" defaultOpen={false}>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Metric label="R Multiple" value={rMultiple} setValue={setRMultiple} />
-              <Metric label="MAE" value={mae} setValue={setMae} />
-              <Metric label="MFE" value={mfe} setValue={setMfe} />
-            </div>
-            <div className="text-xs text-slate-500 mt-2">
-              Leave these blank for now if you don’t track them yet.
-            </div>
-          </Collapsible>
+            <Collapsible title="Metrics (optional)" defaultOpen={false}>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Metric label="R Multiple" value={rMultiple} setValue={setRMultiple} />
+                <Metric label="MAE" value={mae} setValue={setMae} />
+                <Metric label="MFE" value={mfe} setValue={setMfe} />
+              </div>
+              <div className="text-xs text-slate-500 mt-2">Leave blank if you don't track these yet.</div>
+            </Collapsible>
 
-          {/* Screenshots (placeholder UI) */}
-          <Collapsible title="Screenshots (later backend)" defaultOpen={false}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <ShotCard
-                title="Before"
-                value={shotBefore}
-                setValue={setShotBefore}
-                hint="Paste a URL for now (later: file upload)."
-              />
-              <ShotCard
-                title="After"
-                value={shotAfter}
-                setValue={setShotAfter}
-                hint="Paste a URL for now (later: file upload)."
-              />
-            </div>
-          </Collapsible>
+            <Collapsible title="Screenshots (later backend)" defaultOpen={false}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <ShotCard title="Before" value={shotBefore} setValue={setShotBefore} hint="Paste a URL for now." />
+                <ShotCard title="After" value={shotAfter} setValue={setShotAfter} hint="Paste a URL for now." />
+              </div>
+            </Collapsible>
+          </div>
         </div>
 
-        {/* Footer actions */}
-        <div className="p-5 border-t border-slate-800 flex gap-3">
+        {/* Footer - Sticky at bottom */}
+        <div className="sticky bottom-0 p-5 border-t border-slate-800 bg-slate-950 flex gap-3">
           <button
             onClick={handleSave}
             disabled={saving}
@@ -388,10 +340,7 @@ export default function TradeDrawer({ trade, open, onClose, onSave }) {
             {saving ? "Saving..." : "Save Journal"}
           </button>
 
-          <button
-            onClick={onClose}
-            className="rounded-xl border border-slate-800 px-4 py-3 hover:bg-slate-900"
-          >
+          <button onClick={onClose} className="rounded-xl border border-slate-800 px-4 py-3 hover:bg-slate-900">
             Cancel
           </button>
         </div>
@@ -400,7 +349,7 @@ export default function TradeDrawer({ trade, open, onClose, onSave }) {
   );
 }
 
-/* ---------- small UI helpers (kept inside same file) ---------- */
+/* ---------- helpers ---------- */
 
 function Field({ label, children }) {
   return (
@@ -415,11 +364,7 @@ function Collapsible({ title, defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="border-t border-slate-800 pt-4">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between"
-      >
+      <button type="button" onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between">
         <div className="text-sm text-slate-300">{title}</div>
         <div className="text-xs text-slate-500">{open ? "Hide" : "Show"}</div>
       </button>
@@ -428,7 +373,6 @@ function Collapsible({ title, defaultOpen = false, children }) {
   );
 }
 
-// 1–5 segmented control
 function Segment5({ label, value, onChange }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/20 p-3">
@@ -454,7 +398,6 @@ function Segment5({ label, value, onChange }) {
   );
 }
 
-// 0–5 segmented control for rating
 function Segment6({ value, onChange }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/20 p-3">
@@ -503,7 +446,7 @@ function Metric({ label, value, setValue }) {
       <input
         type="number"
         step="0.01"
-        value={value}
+        value={Number.isFinite(Number(value)) ? value : 0}
         onChange={(e) => setValue(Number(e.target.value))}
         className="w-full rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
       />
@@ -531,4 +474,17 @@ function disciplineScoreFromRules(rules = {}) {
   if (!keys.length) return 0;
   const ok = keys.filter((k) => !!rules[k]).length;
   return Math.round((ok / keys.length) * 100);
+}
+
+function csvToArray(v) {
+  if (Array.isArray(v)) return v.map(String).map((x) => x.trim()).filter(Boolean);
+  return String(v || "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function csvToText(v) {
+  if (Array.isArray(v)) return v.join(", ");
+  return String(v || "");
 }

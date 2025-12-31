@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import LogoJourT from "@/components/LogoJourT";
 import { login } from "@/lib/auth/manualAuth";
 import { oauthStart } from "@/lib/auth/oauth";
+import { Suspense } from 'react'
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,7 +43,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <Suspense>
+      <main className="min-h-screen bg-slate-950 text-slate-100">
       {/* subtle background */}
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-emerald-500/10 blur-3xl" />
@@ -209,6 +211,8 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+    </Suspense>
+    
   );
 }
 
