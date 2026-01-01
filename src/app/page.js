@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <Suspense>
+      <main className="min-h-screen bg-slate-950 text-slate-100">
       {/* Topbar */}
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
         <div className="mx-auto max-w-6xl px-5 py-4 flex items-center justify-between">
@@ -144,6 +146,7 @@ export default function LandingPage() {
         </footer>
       </section>
     </main>
+    </Suspense>
   );
 }
 
