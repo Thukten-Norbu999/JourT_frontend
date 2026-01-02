@@ -1,13 +1,14 @@
+// app/(auth)/register/RegisterClient.jsx
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import LogoJourT from "@/components/LogoJourT";
 import { register } from "@/lib/auth/manualAuth";
 import { oauthStart } from "@/lib/auth/oauth";
 
-export default function RegisterPage() {
+export default function RegisterClient() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get("next") || "/dashboard";
@@ -60,8 +61,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <Suspense>
-      <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="min-h-screen bg-slate-950 text-slate-100">
       {/* background */}
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-emerald-500/10 blur-3xl" />
@@ -103,10 +103,7 @@ export default function RegisterPage() {
                   <Link href="/" className="flex items-center gap-3">
                     <LogoJourT width={120} />
                   </Link>
-                  <Link
-                    href="/login"
-                    className="text-sm text-emerald-300 hover:underline"
-                  >
+                  <Link href="/login" className="text-sm text-emerald-300 hover:underline">
                     Login
                   </Link>
                 </div>
@@ -120,12 +117,8 @@ export default function RegisterPage() {
 
                 {/* OAuth */}
                 <div className="mt-5 space-y-3">
-                  <OAuthBtn onClick={() => oauthStart("google")}>
-                    Continue with Google
-                  </OAuthBtn>
-                  <OAuthBtn onClick={() => oauthStart("github")}>
-                    Continue with GitHub
-                  </OAuthBtn>
+                  <OAuthBtn onClick={() => oauthStart("google")}>Continue with Google</OAuthBtn>
+                  <OAuthBtn onClick={() => oauthStart("github")}>Continue with GitHub</OAuthBtn>
                 </div>
 
                 <Divider />
@@ -154,10 +147,7 @@ export default function RegisterPage() {
                     />
                   </Field>
 
-                  <Field
-                    label="Password"
-                    hint="At least 8 characters. Use a mix for stronger passwords."
-                  >
+                  <Field label="Password" hint="At least 8 characters. Use a mix for stronger passwords.">
                     <div className="relative">
                       <input
                         className="w-full px-4 py-3 pr-24 rounded-2xl bg-slate-950 border border-slate-800 focus:outline-none focus:border-slate-600 text-sm"
@@ -178,9 +168,7 @@ export default function RegisterPage() {
 
                     <div className="mt-2 flex items-center gap-2">
                       <StrengthBar score={pwScore} />
-                      <span className="text-xs text-slate-400">
-                        {pwScoreLabel(pwScore)}
-                      </span>
+                      <span className="text-xs text-slate-400">{pwScoreLabel(pwScore)}</span>
                     </div>
                   </Field>
 
@@ -201,9 +189,7 @@ export default function RegisterPage() {
                       autoComplete="new-password"
                     />
                     {pw2.length > 0 && !matchOk ? (
-                      <div className="text-xs text-rose-300 mt-2">
-                        Passwords don’t match.
-                      </div>
+                      <div className="text-xs text-rose-300 mt-2">Passwords don’t match.</div>
                     ) : null}
                   </Field>
 
@@ -246,7 +232,6 @@ export default function RegisterPage() {
         </div>
       </div>
     </main>
-    </Suspense>
   );
 }
 
