@@ -7,7 +7,7 @@ import TradeDrawer from "@/components/TradeDrawer";
 import { fetchAllTrades, upsertTradeJournal } from "@/lib/trades/tradesApi";
 import { uiError } from "@/lib/apiClient";
 
-export default function TradesPage() {
+function TradesContent() {
   const sp = useSearchParams();
   const router = useRouter();
   const dateQuery = sp.get("date") || "";
@@ -94,8 +94,7 @@ export default function TradesPage() {
   }
 
   return (
-    <Suspense>
-      <div className="space-y-4">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -178,6 +177,24 @@ export default function TradesPage() {
         onSave={saveJournal}
       />
     </div>
+  );
+}
+
+export default function TradesPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="h-7 w-32 bg-slate-800 rounded animate-pulse" />
+            <div className="h-4 w-48 bg-slate-800/50 rounded mt-2 animate-pulse" />
+          </div>
+          <div className="h-9 w-24 bg-slate-800 rounded-xl animate-pulse" />
+        </div>
+        <TradesSkeleton />
+      </div>
+    }>
+      <TradesContent />
     </Suspense>
   );
 }

@@ -1,14 +1,14 @@
 // app/(auth)/register/RegisterClient.jsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import LogoJourT from "@/components/LogoJourT";
 import { register } from "@/lib/auth/manualAuth";
 import { oauthStart } from "@/lib/auth/oauth";
 
-export default function RegisterClient() {
+function RegisterClient() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get("next") || "/dashboard";
@@ -85,7 +85,7 @@ export default function RegisterClient() {
             </h1>
 
             <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
-              <Feature title="Cleaner records" desc="You’ll actually trust your stats." />
+              <Feature title="Cleaner records" desc="You'll actually trust your stats." />
               <Feature title="Setups that win" desc="Tag & filter what works." />
               <Feature title="Backtest ready" desc="Run sims once the backend is live." />
               <Feature title="Import CSV" desc="Map columns, validate, import." />
@@ -189,7 +189,7 @@ export default function RegisterClient() {
                       autoComplete="new-password"
                     />
                     {pw2.length > 0 && !matchOk ? (
-                      <div className="text-xs text-rose-300 mt-2">Passwords don’t match.</div>
+                      <div className="text-xs text-rose-300 mt-2">Passwords don't match.</div>
                     ) : null}
                   </Field>
 
@@ -232,6 +232,18 @@ export default function RegisterClient() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-slate-400">Loading...</div>
+      </div>
+    }>
+      <RegisterClient />
+    </Suspense>
   );
 }
 

@@ -1,21 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import LogoJourT from "@/components/LogoJourT";
 import { login } from "@/lib/auth/manualAuth";
 import { oauthStart } from "@/lib/auth/oauth";
-import { Suspense } from 'react'
 
-export default function LoginPage() {
+// Separate component that uses useSearchParams
+function LoginForm() {
   const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get("next") || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
@@ -43,8 +42,7 @@ export default function LoginPage() {
   }
 
   return (
-    <Suspense>
-      <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="min-h-screen bg-slate-950 text-slate-100">
       {/* subtle background */}
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-emerald-500/10 blur-3xl" />
@@ -211,8 +209,19 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+// Main component that wraps LoginForm in Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-slate-400">Loading...</div>
+      </div>
+    }>
+      <LoginForm />
     </Suspense>
-    
   );
 }
 
