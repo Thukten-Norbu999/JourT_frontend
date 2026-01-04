@@ -2,7 +2,7 @@
 import { api } from "../apiClient";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "https://jourt-api.onrender.com";
 
 function isNetworkError(e) {
   const msg = String(e?.message || "");
