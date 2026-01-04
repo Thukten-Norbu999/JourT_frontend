@@ -15,7 +15,7 @@ const DEFAULT_TIMEOUT_MS = 12000;
 function baseUrl() {
   return (
     process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
-    "http://localhost:8080"
+    "https://jourt-api.onrender.com"
   );
 }
 
