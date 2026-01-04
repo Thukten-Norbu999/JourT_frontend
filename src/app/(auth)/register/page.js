@@ -128,9 +128,9 @@ function RegisterClient() {
                   <Field label="Username">
                     <input
                       className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 focus:outline-none focus:border-slate-600 text-sm"
-                      placeholder="thukten"
+                      placeholder="username"
                       value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      // onChange={(e) => setUsername(e.target.value)}
                       autoComplete="username"
                       inputMode="text"
                     />
